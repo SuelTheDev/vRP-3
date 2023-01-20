@@ -10,7 +10,7 @@ function Misc:__construct()
 end
 
 AddStateBagChangeHandler("loaded", nil, function(bagName, _, value, _, _)
-  if bagName == "global" and value then
+  if  value then
     vRP:registerExtension(Misc)
   end
 end)

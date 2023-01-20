@@ -5,6 +5,7 @@ local cfg = {}
 cfg.spawn_enabled = true -- set to false to disable the feature
 cfg.spawn_position = {-538.70001220703,-214.91049194336,37.649784088135}
 cfg.spawn_radius = 3
+cfg.max_health = 400
 
 cfg.update_interval = 15 -- seconds
 

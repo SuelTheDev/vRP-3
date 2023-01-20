@@ -18,7 +18,7 @@ end
 function Command:getAI(radius)
 	if not radius then radius = 10 end
 	
-	local ai = vRP.EXT.Misc:getClosestPeds(radius)
+	local ai = vRP.EXT.Misc:getClosestPeds(tonumber(radius))
 	
 	for k,v in pairs(ai) do
 		if not IsPedInAnyVehicle(k) then	-- if ped isnt in a vehicle

@@ -16,11 +16,7 @@ local pvRP = {}
 pvRP.loadScript = module
 Proxy.addInterface("vRP", pvRP)
 
-local databaseName = module("vrp", "cfg/base")?.db?.database or "vrp"
-
 -- queries
-vRP:prepare("vRP/create_database", ("CREATE DATABASE IF NOT EXISTS `%s`; use %s;"):format(databaseName, databaseName))
-
 vRP:prepare("vRP/base_tables",
 [[
 CREATE TABLE IF NOT EXISTS vrp_users(
@@ -95,7 +91,7 @@ vRP:prepare("vRP/get_globaldata","SELECT dvalue FROM vrp_global_data WHERE dkey 
 
 -- init tables
 async(function() 
-  vRP:execute('vRP/create_database')
+  GlobalState:set('loaded', false, false)
   Wait(1000)
   vRP:execute("vRP/base_tables") 
   Wait(1000)
@@ -103,20 +99,6 @@ async(function()
 end)
 
 -- handlers
-
-AddEventHandler("playerDropped",function(reason)
-  vRP:onPlayerDropped(source)
-end)
-
-RegisterServerEvent("vRPcli:playerSpawned")
-AddEventHandler("vRPcli:playerSpawned", function()
-  vRP:onPlayerSpawned(source)
-end)
-
-RegisterServerEvent("vRPcli:playerDied")
-AddEventHandler("vRPcli:playerDied", function()
-  vRP:onPlayerDied(source)
-end)
 
 local lang = vRP.lang
 
@@ -156,4 +138,24 @@ function Base.event:playerSpawn(user, first_spawn)
   end
 end
 
-vRP:registerExtension(Base)
+AddStateBagChangeHandler("loaded", nil, function(bagName, _, value, _, _)
+	if  value then    
+		vRP:registerExtension(Base)
+
+    AddEventHandler("playerDropped",function(reason)
+      vRP:onPlayerDropped(source)
+    end)
+    
+    RegisterNetEvent("vRPcli:playerSpawned", function()      
+      vRP:onPlayerSpawned(source)
+    end)
+    
+    RegisterNetEvent("vRPcli:playerDied", function()
+      vRP:onPlayerDied(source)
+    end)
+	end
+end)
+
+
+
+

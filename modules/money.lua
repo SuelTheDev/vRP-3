@@ -297,4 +297,8 @@ function Money.event:playerMoneyUpdate(user)
   end
 end
 
-vRP:registerExtension(Money)
+AddStateBagChangeHandler("loaded", nil, function(bagName, _, value, _, _)
+  if  value then
+    vRP:registerExtension(Money)
+  end
+end)

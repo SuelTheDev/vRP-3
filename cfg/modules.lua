@@ -4,19 +4,19 @@
 -- It's recommended to disable things from the modules configurations directly if possible.
 
 local modules = {
-  admin = false,
-  group = false,
-  gui = false,
-  map = false,
-  weather = false,
-  misc = false,
-  command = false,
-  player_state = false,
-  weapon = false,
-  user = false,
+  admin = true,
+  group = true,
+  gui = true,
+  map = true,
+  weather = true,
+  misc = true,
+  command = true,
+  player_state = true,
+  weapon = true,
+  user = true,
   identity = true,
-  logsystem = false,
-  money = false
+  logsystem = true,
+  money = true
 }
 
 return modules

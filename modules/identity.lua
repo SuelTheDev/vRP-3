@@ -299,7 +299,7 @@ end
 
 --FIX TO START MODULE AFTER CORE IS INITIALIZED
 AddStateBagChangeHandler("loaded", nil, function(bagName, _, value, _, _)
-  if bagName == "global" and value then
+  if  value then
     vRP:registerExtension(Identity)
   end
 end)

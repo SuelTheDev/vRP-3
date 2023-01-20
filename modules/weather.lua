@@ -146,7 +146,7 @@ function Weather.event:playerSpawn(user, first_spawn)
 end
 
 AddStateBagChangeHandler("loaded", nil, function(bagName, _, value, _, _)  
-  if bagName == "global" and value then
+  if  value then
     vRP:registerExtension(Weather)            
   end
 end)

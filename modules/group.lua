@@ -412,7 +412,7 @@ function Group.event:characterLoad(user)
 end
 
 AddStateBagChangeHandler("loaded", nil, function(bagName, _, value, _, _)
-  if bagName == "global" and value then
+  if  value then
     vRP:registerExtension(Group)
   end
 end)

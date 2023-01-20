@@ -1,5 +1,6 @@
 -- https://github.com/ImagicTheCat/vRP
 -- MIT license (see LICENSE or vrp/vRPShared.lua)
+if not vRP.modules.map then return end
 
 local Map = class("Map", vRP.Extension)
 
@@ -103,7 +104,7 @@ function Map.tunnel:leaveArea(name)
 end
 
 AddStateBagChangeHandler("loaded", nil, function(bagName, _, value, _, _)
-  if bagName == "global" and value then
+  if  value then
     vRP:registerExtension(Map)
   end
 end)
