@@ -27,6 +27,8 @@ window.addEventListener("load",function(){
   window.addEventListener("message",function(evt){ //lua actions
     var data = evt.data;
 
+    console.log(data)
+
     if(data.act == "gui_data"){
       gui_data = data.data; // global
     }

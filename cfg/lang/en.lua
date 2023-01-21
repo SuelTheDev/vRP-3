@@ -108,7 +108,7 @@ local lang = {
         title = "#{1}: {2}",
         info = {
           title = "Info",
-          description = "<em>Endpoint: </em>{1}<br /><em>Source: </em>{2}<br /><em>Last login: </em>{3}<br /><em>Character id: </em>{4}<br /><br /><br />(valid to update)"
+          description = "<em>Endpoint: </em>{1}<br /><em>Source: </em>{2}<br /><em>Last login: </em>{3}<br /><em>Character id: </em>{4}<br /><br /><br />(valid to update)<br/>Health: {5}<br/>Max Health: {6}"
         },
         kick = {
           title = "Kick",

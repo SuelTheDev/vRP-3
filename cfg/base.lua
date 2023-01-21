@@ -33,6 +33,7 @@ cfg.log_level = 0 -- maximum verbose level for logs, -1 may disable logs and 100
 cfg.moduals = {
 	-- database should be first
 	"vrp_oxmysql",
+  "menuv",
 	"vrp_commands"
 }
 

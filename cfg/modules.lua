@@ -16,7 +16,8 @@ local modules = {
   user = true,
   identity = true,
   logsystem = true,
-  money = true
+  money = true,
+  garages = true
 }
 
 return modules

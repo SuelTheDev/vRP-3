@@ -64,13 +64,13 @@ function GUI:__construct()
   end)
 
   -- task: GUI resolution data
-  Citizen.CreateThread(function()
-    while true do
-      Citizen.Wait(10000)
+  -- Citizen.CreateThread(function()
+  --   while true do
+  --     Citizen.Wait(10000)
 
-      self:updateGUIData()
-    end
-  end)
+  --     self:updateGUIData()
+  --   end
+  -- end)
 end
 
 -- CONTROLS/GUI

@@ -9,6 +9,7 @@ local Admin = class("Admin", vRP.Extension)
 
 --menu movement. gives all location based options
 local function menu_admin_movement(self)
+	
 	vRP.EXT.GUI:registerMenuBuilder("admin.movement", function(menu)
 		local user = menu.user
 		menu.title = "Movement"
@@ -110,7 +111,10 @@ local function menu_admin_users_user(self) -- individual user options
 			htmlEntities.encode(tuser and tuser.endpoint or "offline"), -- endpoint
 			tuser and tuser.source or "offline", -- source
 			tuser and tuser.last_login or "offline", -- last login
-			tuser and tuser.cid or "none" -- character id
+			tuser and tuser.cid or "none", -- character id,
+			tuser and tuser.source and GetEntityHealth(GetPlayerPed( tuser.source )) or "0",
+			tuser and tuser.source and vRP.EXT.PlayerState.remote.getMaxHealth(tuser.source) or "0",
+
 		}))
 
 		if tuser then
@@ -282,6 +286,7 @@ function Admin:__construct()
 	menu_admin_users_user(self)
 	menu_admin_emotes(self)
 	menu_admin_movement(self)
+
 
 	-- main menu
 	vRP.EXT.GUI:registerMenuBuilder("main", function(menu)

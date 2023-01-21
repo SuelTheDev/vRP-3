@@ -23,10 +23,12 @@ server_script {
   "modules/player_state.lua",
   "modules/weapon.lua",
   "modules/logsystem.lua",
-  "modules/money.lua"
+  "modules/money.lua",
+  "modules/garages.lua"
 }
 
 client_scripts {
+  '@menuv/menuv.lua',
   "client/base.lua",
   "client/map.lua",
   "client/gui.lua",
@@ -80,5 +82,6 @@ use_experimental_fxv2_oal 'yes'
 dependencies {
   '/server:6129',
   '/onesync',
-  'oxmysql'
+  'oxmysql',
+  'menuv'
 }

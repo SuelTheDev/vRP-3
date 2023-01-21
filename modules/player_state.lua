@@ -51,6 +51,10 @@ end
 PlayerState.event = {}
 
 function PlayerState.event:playerSpawn(user, first_spawn)
+  print("PlayerSpawn", user, first_spawn)
+
+  self.remote.setMaxHealth(user.source, self.cfg.max_health or 400)
+
   if first_spawn then
     self.remote._setConfig(user.source, self.cfg.update_interval, self.cfg.mp_models)
   end
@@ -74,16 +78,17 @@ function PlayerState.event:playerSpawn(user, first_spawn)
       user.cdata.state.position.z, user.cdata.state.heading)
   end
 
-  if user.cdata.state.customization then -- customization
-    self.remote.setCustomization(user.source, user.cdata.state.customization)
-  end
+  
+  print("Max", self.remote.getMaxHealth(user.source), self.cfg.max_health)
+  -- if user.cdata.state.customization then -- customization
+  --   self.remote.setCustomization(user.source, user.cdata.state.customization)
+  -- end
 
   if user.cdata.state.health then -- health
-    self.remote.setMaxHealth(user.source, self.cfg.max_health)
     self.remote.setHealth(user.source, user.cdata.state.health)
   end
 
-  self.remote._setStateReady(user.source, true)
+  self.remote.setStateReady(user.source, true)
 
   vRP:triggerEvent("playerStateLoaded", user)
 end

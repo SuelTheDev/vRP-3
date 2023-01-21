@@ -35,17 +35,19 @@ end
 
 -- amount: 100-200 ?
 function PlayerState:setHealth(amount)
-  if not pcall(SetEntityHealth, PlayerPedId(), math.floor(amount)) then
+  if not pcall(SetEntityHealth, GetPlayerPed(-1), math.floor(amount)) then
     Wait(100)
-    print("ERROR", self:setHealth(amount))   
+    self:setHealth(amount)
   end
 end
 
 function PlayerState:setMaxHealth(amount)
-  SetPedMaxHealth(PlayerPedId(), math.floor(amount))
+  print('ok', amount)
+  SetPedMaxHealth(GetPlayerPed(-1), math.floor(amount))
 end
 
 function PlayerState:getMaxHealth()
+  print("GetMaxHealth", GetPedMaxHealth(PlayerPedId()))
   return GetPedMaxHealth(PlayerPedId())  
 end
 
@@ -239,6 +241,8 @@ end
 
 PlayerState.tunnel.setHealth = PlayerState.setHealth
 PlayerState.tunnel.getHealth = PlayerState.getHealth
+PlayerState.tunnel.getMaxHealth = PlayerState.getMaxHealth
+PlayerState.tunnel.setMaxHealth = PlayerState.setMaxHealth
 PlayerState.tunnel.getDrawables = PlayerState.getDrawables
 PlayerState.tunnel.getDrawableTextures = PlayerState.getDrawableTextures
 PlayerState.tunnel.getCustomization = PlayerState.getCustomization
