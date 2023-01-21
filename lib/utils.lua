@@ -138,12 +138,8 @@ function clone(t)
 end
 
 function parseInt(v)
-  local n = tonumber(v)
-  if n == nil then 
-    return 0
-  else
-    return math.floor(n)
-  end
+   local n = tonumber(v)
+   return n and math.floor(n) or 0
 end
 
 -- will remove chars not allowed/disabled by strchars
