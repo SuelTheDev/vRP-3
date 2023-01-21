@@ -7,8 +7,7 @@ window.addEventListener("load",function(){
   var wprompt = new WPrompt();
   var requestmgr = new RequestManager();
   var announcemgr = new AnnounceManager();
-  var radio_display = new RadioDisplay();
-  var aengine = new AudioEngine();
+  
 
   requestmgr.onResponse = function(id,ok){ $.post("https://vrp/request",JSON.stringify({act: "response", id: id, ok: ok})); }
   wprompt.onClose = function(){ $.post("https://vrp/prompt",JSON.stringify({act: "close", result: wprompt.result})); }
@@ -19,20 +18,10 @@ window.addEventListener("load",function(){
       $.post("https://vrp/menu",JSON.stringify({act: "select", option: option}));
     }
   }
-
   //init
   $.post("https://vrp/init",""); 
-
-  var pbars = {}
   var divs = {}
 
-  //progress bar ticks (25fps)
-  setInterval(function(){
-    for(var k in pbars){
-      pbars[k].frame(1/25.0*1000);
-    }
-
-  }, 1/25.0*1000);
 
   //MESSAGES
   window.addEventListener("message",function(evt){ //lua actions
