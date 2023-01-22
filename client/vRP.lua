@@ -7,14 +7,17 @@ local vRPShared = module("vrp", "vRPShared")
 -- Client vRP
 local vRP = class("vRP", vRPShared)
 
-function vRP:__construct()
-  vRPShared.__construct(self)
 
-  -- load config
+function vRP:__construct()
+
+  vRPShared.__construct(self)
   self.cfg = module("vrp", "cfg/client")
-  
-  TriggerServerEvent("vRPcli:playerSpawned")	-- triggers player reload
-  TriggerServerEvent("vRP:reload")			-- restarts extensions after vrp is loaded
+  AddStateBagChangeHandler("loaded", nil, function(_, _, value, _, _)
+    print("loaded")
+    if value then
+      TriggerServerEvent("vRPcli:playerSpawned")
+    end
+  end)
 end
 
 return vRP

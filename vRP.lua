@@ -23,7 +23,7 @@ end
 
 -- should execute the prepared query
 -- params: map of parameters
--- mode: 
+-- mode:
 --- "query": should return rows, affected
 --- "execute": should return affected
 --- "scalar": should return a scalar
@@ -56,9 +56,9 @@ function vRP:__construct()
   self.cfg = module("vrp", "cfg/base")
   self.log_level = self.cfg.log_level
 
-  -- load language 
+  -- load language
   self.luang = Luang()
-  self.luang:loadLocale(self.cfg.lang, module("cfg/lang/"..self.cfg.lang) or {})
+  self.luang:loadLocale(self.cfg.lang, module("cfg/lang/" .. self.cfg.lang) or {})
   self.lang = self.luang.lang[self.cfg.lang]
 
   self.users = {} -- map of id => User
@@ -82,24 +82,28 @@ function vRP:__construct()
   -- DB driver check thread
   Citizen.CreateThread(function()
     while not self.db_initialized do
-      self:log("DB driver \""..self.cfg.db.driver.."\" not initialized yet ("..#self.cached_prepares.." prepares cached, "..#self.cached_queries.." queries cached).")
+      self:log("DB driver \"" ..
+        self.cfg.db.driver ..
+        "\" not initialized yet (" ..
+        #self.cached_prepares .. " prepares cached, " .. #self.cached_queries .. " queries cached).")
       Citizen.Wait(5000)
     end
   end)
 
   -- other tasks
   local function task_save()
-    SetTimeout(self.cfg.save_interval*1000, task_save)
+    SetTimeout(self.cfg.save_interval * 1000, task_save)
     self:save()
   end
+
   task_save()
-	
-	--print([[
-	--██    ██ ██████  ██████  
-	--██    ██ ██   ██ ██   ██ 
-	--██    ██ ██████  ██████  
-	-- ██  ██  ██   ██ ██      
-	--  ████   ██   ██ ██      ]])
+
+  --print([[
+  --██    ██ ██████  ██████
+  --██    ██ ██   ██ ██   ██
+  --██    ██ ██████  ██████
+  -- ██  ██  ██   ██ ██
+  --  ████   ██   ██ ██      ]])
 end
 
 -- register a DB driver
@@ -115,7 +119,7 @@ function vRP:registerDBDriver(db_driver)
 
         local ok = self.db_driver:onInit(self.cfg.db)
         if ok then
-          self:log("Connected to DB using driver \""..name.."\".")
+          self:log("Connected to DB using driver \"" .. name .. "\".")
           self.db_initialized = true
           -- execute cached prepares
           for _, prepare in pairs(self.cached_prepares) do
@@ -128,11 +132,11 @@ function vRP:registerDBDriver(db_driver)
           self.cached_prepares = nil
           self.cached_queries = nil
         else
-          self:error("Connection to DB failed using driver \""..name.."\".")
+          self:error("Connection to DB failed using driver \"" .. name .. "\".")
         end
       end
     else
-      self:error("DB driver \""..name.."\" already registered.")
+      self:error("DB driver \"" .. name .. "\" already registered.")
     end
   else
     self:error("Not a DBDriver class.")
@@ -144,7 +148,7 @@ end
 --- query: SQL string with @params notation
 function vRP:prepare(name, query)
   if self.log_level > 0 then
-    self:log("prepare "..name.." = \""..query.."\"")
+    self:log("prepare " .. name .. " = \"" .. query .. "\"")
   end
 
   self.prepared_queries[name] = true
@@ -152,7 +156,7 @@ function vRP:prepare(name, query)
   if self.db_initialized then -- direct call
     self.db_driver:onPrepare(name, query)
   else
-    table.insert(self.cached_prepares, {name, query})
+    table.insert(self.cached_prepares, { name, query })
   end
 end
 
@@ -167,16 +171,16 @@ function vRP:query(name, params, mode)
   if not mode then mode = "query" end
 
   if not self.prepared_queries[name] then
-    self:error("query "..name.." doesn't exist.")
+    self:error("query " .. name .. " doesn't exist.")
   end
   if self.log_level > 0 then
-    self:log("query "..name.." ("..mode..") params = "..json.encode(params or {}))
+    self:log("query " .. name .. " (" .. mode .. ") params = " .. json.encode(params or {}))
   end
   if self.db_initialized then -- direct call
     return self.db_driver:onQuery(name, params or {}, mode)
   else -- async call, wait query result
     local r = async()
-    table.insert(self.cached_queries, {{name, params or {}, mode}, r})
+    table.insert(self.cached_queries, { { name, params or {}, mode }, r })
     return r:wait()
   end
 end
@@ -211,7 +215,7 @@ function vRP:authUser(source)
   if #ids == 0 then return end
   -- search identifiers
   for _, id in ipairs(ids) do
-    local rows = self:query("vRP/userid_byidentifier", {identifier = id})
+    local rows = self:query("vRP/userid_byidentifier", { identifier = id })
     if #rows > 0 then return rows[1].user_id end
   end
   -- no ids found, create user
@@ -220,7 +224,7 @@ function vRP:authUser(source)
     local user_id = rows[1].id
     -- add identifiers
     for _, id in pairs(ids) do
-      self:execute("vRP/add_identifier", {user_id = user_id, identifier = id})
+      self:execute("vRP/add_identifier", { user_id = user_id, identifier = id })
     end
     return user_id
   end
@@ -263,7 +267,7 @@ function vRP:connectUser(source)
       if cid then
         user:useCharacter(cid)
       else
-        self:error("couldn't create character (user_id = "..user_id..")")
+        self:error("couldn't create character (user_id = " .. user_id .. ")")
       end
     end
   end
@@ -271,7 +275,7 @@ function vRP:connectUser(source)
   user.last_login = user.data.last_login or ""
   user.data.last_login = os.date("%H:%M:%S %d/%m/%Y")
   -- trigger join
-  self:log(user.name.." ("..user.endpoint..") connected (user_id = "..user.id..")")
+  self:log(user.name .. " (" .. user.endpoint .. ") connected (user_id = " .. user.id .. ")")
   self:triggerEvent("playerJoin", user)
   return user
 end
@@ -288,29 +292,29 @@ function vRP:disconnectUser(source)
     -- unreference
     self.users[user.id] = nil
     self.users_by_source[user.source] = nil
-    self:log(user.name.." ("..user.endpoint..") disconnected (user_id = "..user.id..")")
+    self:log(user.name .. " (" .. user.endpoint .. ") disconnected (user_id = " .. user.id .. ")")
   end
 end
 
 -- user data
 -- value: binary string
 function vRP:setUData(user_id, key, value)
-  self:execute("vRP/set_userdata", {user_id = user_id, key = key, value = tohex(value)})
+  self:execute("vRP/set_userdata", { user_id = user_id, key = key, value = tohex(value) })
 end
 
 function vRP:getUData(user_id, key)
-  local rows = self:query("vRP/get_userdata", {user_id = user_id, key = key})
+  local rows = self:query("vRP/get_userdata", { user_id = user_id, key = key })
   return #rows > 0 and rows[1].dvalue or ""
 end
 
 -- character data
 -- value: binary string
 function vRP:setCData(character_id, key, value)
-  self:execute("vRP/set_characterdata", {character_id = character_id, key = key, value = tohex(value)})
+  self:execute("vRP/set_characterdata", { character_id = character_id, key = key, value = tohex(value) })
 end
 
 function vRP:getCData(character_id, key)
-  local rows = self:query("vRP/get_characterdata", {character_id = character_id, key = key})
+  local rows = self:query("vRP/get_characterdata", { character_id = character_id, key = key })
   return #rows > 0 and rows[1].dvalue or ""
 end
 
@@ -318,23 +322,23 @@ end
 -- value: binary string
 function vRP:setSData(key, value, id)
   if not id then id = self.cfg.server_id end
-  self:execute("vRP/set_serverdata", {key = key, value = tohex(value), id = id})
+  self:execute("vRP/set_serverdata", { key = key, value = tohex(value), id = id })
 end
 
 function vRP:getSData(key, id)
   if not id then id = self.cfg.server_id end
-  local rows = self:query("vRP/get_serverdata", {key = key, id = id})
+  local rows = self:query("vRP/get_serverdata", { key = key, id = id })
   return #rows > 0 and rows[1].dvalue or ""
 end
 
 -- global data
 -- value: binary string
 function vRP:setGData(key, value)
-  self:execute("vRP/set_globaldata", {key = key, value = tohex(value)})
+  self:execute("vRP/set_globaldata", { key = key, value = tohex(value) })
 end
 
 function vRP:getGData(key)
-  local rows = self:query("vRP/get_globaldata", {key = key})
+  local rows = self:query("vRP/get_globaldata", { key = key })
   return #rows > 0 and rows[1].dvalue or ""
 end
 
@@ -355,7 +359,7 @@ function vRP:onPlayerSpawned(source)
   local user = self.users_by_source[source]
   if not user then user = self:connectUser(source) end
   if user then
-    user.spawns = user.spawns+1
+    user.spawns = user.spawns + 1
     local first_spawn = (user.spawns == 1)
     if first_spawn then
       -- first spawn, reference player
@@ -364,12 +368,12 @@ function vRP:onPlayerSpawned(source)
         self.EXT.Base.remote._addPlayer(source, user.source)
       end
       -- send new player to all players
-      self.EXT.Base.remote._addPlayer(-1 ,user.source)
+      self.EXT.Base.remote._addPlayer(-1, user.source)
       -- set client tunnel delay at first spawn
       Tunnel.setDestDelay(user.source, self.cfg.load_delay)
       self:triggerEvent("playerDelay", user, true)
-      SetTimeout(2000, function() 
-        SetTimeout(self.cfg.load_duration*1000, function() -- set client delay to normal delay
+      SetTimeout(2000, function()
+        SetTimeout(self.cfg.load_duration * 1000, function() -- set client delay to normal delay
           Tunnel.setDestDelay(user.source, self.cfg.global_delay)
           self:triggerEvent("playerDelay", user, false)
         end)
@@ -392,19 +396,23 @@ end
 
 -- restart everything defined in cfg
 RegisterNetEvent("vRP:reload", function()
+  print("Started")
   cfg = module("vrp", "cfg/base")
-  for k,v in pairs(cfg.moduals) do 
-    print(k, v)
-    StartResource(v) 
+  for _, v in pairs(cfg.moduals) do
+    async(function()
+       if GetResourceState(v) == "stopped" then
+        StartResource(v)
+      end
+    end)
   end
 end)
 
 
-Citizen.CreateThread(function ()
-  while GetResourceState(GetCurrentResourceName()) ~= "started" do
-    Wait(100)  
-  end
-  TriggerEvent("vRP:reload")
-end)
+-- Citizen.CreateThread(function()
+--   while GetResourceState(GetCurrentResourceName()) ~= "started" do
+--     Wait(0)
+--   end
+--   -- TriggerEvent("vRP:reload")
+-- end)
 
 return vRP

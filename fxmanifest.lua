@@ -7,7 +7,8 @@ version '3.0.1'
 ui_page "gui/index.html"
 
 shared_script {
-  "lib/utils.lua"
+  "lib/utils.lua",
+  "vRPShared.lua"
 }
 
 server_script {
@@ -27,8 +28,7 @@ server_script {
   "modules/garages.lua"
 }
 
-client_scripts {
-  '@menuv/menuv.lua',
+client_scripts {  
   "client/base.lua",
   "client/map.lua",
   "client/gui.lua",

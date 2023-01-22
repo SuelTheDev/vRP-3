@@ -3,13 +3,16 @@
 
 -- init vRP client context
 
-Tunnel = module("vrp", "lib/Tunnel")
+print('VRP')
+
+Tunnel = module("vrp", "lib/Tunnel" )
 Proxy = module("vrp", "lib/Proxy")
 
 local cvRP = module("vrp", "client/vRP")
 vRP = cvRP() -- instantiate vRP
 
 local pvRP = {}
+
 -- load script in vRP context
 function pvRP.loadScript(resource, path)
   module(resource, path)
@@ -29,14 +32,13 @@ Citizen.CreateThread(function()
   local was_dead = false
 
   while true do
-    Citizen.Wait(0)
+    Citizen.Wait(500)
 
     local player = PlayerId()
     if NetworkIsPlayerActive(player) then
       local ped = PlayerPedId()
 
-      local dead = IsPedFatallyInjured(ped)
-
+      local dead = IsPedFatallyInjured(ped) or GetEntityHealth(ped) < 101 or LocalPlayer.state.isDead
       if not was_dead and dead then
         -- compatibility with survival module: prevent death event with coma
         if not vRP.EXT.Survival or vRP.EXT.Survival.coma_left <= 0 then
@@ -269,10 +271,9 @@ end
 -- seq: list of animations as {dict,anim_name,loops} (loops is the number of loops, default 1) or a task def (properties: task, play_exit)
 -- looping: if true, will infinitely loop the first element of the sequence until stopAnim is called
 function Base:playAnim(upper, seq, looping)
+  local ped = PlayerPedId()
   if seq.task then -- is a task (cf https://github.com/ImagicTheCat/vRP/pull/118)
-    self:stopAnim(true)
-
-    local ped = PlayerPedId()
+    self:stopAnim(true)   
     if seq.task == "PROP_HUMAN_SEAT_CHAIR_MP_PLAYER" then -- special case, sit in a chair
       local x, y, z = self:getPosition()
       TaskStartScenarioAtPosition(ped, seq.task, x, y, z - 1, GetEntityHeading(ped), 0, 0, false)
@@ -280,7 +281,7 @@ function Base:playAnim(upper, seq, looping)
       TaskStartScenarioInPlace(ped, seq.task, 0, not seq.play_exit)
     end
   else -- a regular animation sequence
-    self:stopAnim(self, upper)
+    self:stopAnim(upper)
 
     local flags = 0
     if upper then flags = flags + 48 end
@@ -317,12 +318,12 @@ function Base:playAnim(upper, seq, looping)
               if not first then inspeed = 2.0001 end
               if not last then outspeed = 2.0001 end
 
-              TaskPlayAnim(PlayerPedId(), dict, name, inspeed, outspeed, -1, flags, 0, 0, 0, 0)
+              TaskPlayAnim(ped, dict, name, inspeed, outspeed, -1, flags, 0, 0, 0, 0)
             end
 
             Citizen.Wait(0)
-            while GetEntityAnimCurrentTime(PlayerPedId(), dict, name) <= 0.95 and
-                IsEntityPlayingAnim(PlayerPedId(), dict, name, 3) and self.anims[id] do
+            while GetEntityAnimCurrentTime(ped, dict, name) <= 0.95 and
+                IsEntityPlayingAnim(ped, dict, name, 3) and self.anims[id] do
               Citizen.Wait(0)
             end
           end
@@ -401,7 +402,6 @@ function Base:bindKey(key, mapper, onpress, onrelease)
 end
 
 Base.tunnel.triggerRespawn = Base.triggerRespawn
-Base.tunnel.screenFade = Base.screenFade
 Base.tunnel.teleport = Base.teleport
 Base.tunnel.vehicleTeleport = Base.vehicleTeleport
 Base.tunnel.getPosition = Base.getPosition
@@ -430,5 +430,7 @@ function tvRP.setMovement(dict)
   end
 end
 --]]
+
+
 
 vRP:registerExtension(Base)

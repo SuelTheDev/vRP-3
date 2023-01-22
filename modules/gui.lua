@@ -415,6 +415,6 @@ end
 
 AddStateBagChangeHandler("loaded", nil, function(bagName, _, value, _, _)
   if  value then
-    vRP:registerExtension(GUI)
+    vRP:registerExtension( GUI )
   end
 end)

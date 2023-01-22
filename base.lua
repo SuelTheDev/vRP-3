@@ -2,7 +2,6 @@
 -- MIT license (see LICENSE or vrp/vRPShared.lua)
 
 -- init vRP server context
-
 Proxy = module("lib/Proxy")
 Tunnel = module("lib/Tunnel")
 
@@ -11,10 +10,12 @@ local htmlEntities = module("vrp", "lib/htmlEntities")
 local cvRP = module("vrp", "vRP")
 vRP = cvRP() -- instantiate vRP
 
+
 local pvRP = {}
 -- load script in vRP context
 pvRP.loadScript = module
 Proxy.addInterface("vRP", pvRP)
+
 
 -- queries
 vRP:prepare("vRP/base_tables",
@@ -89,14 +90,20 @@ vRP:prepare("vRP/get_serverdata","SELECT dvalue FROM vrp_server_data WHERE id = 
 vRP:prepare("vRP/set_globaldata","REPLACE INTO vrp_global_data(dkey,dvalue) VALUES(@key,UNHEX(@value))")
 vRP:prepare("vRP/get_globaldata","SELECT dvalue FROM vrp_global_data WHERE dkey = @key")
 
--- init tables
-async(function() 
-  GlobalState:set('loaded', false, false)
-  Wait(1000)
-  vRP:execute("vRP/base_tables") 
-  Wait(1000)
-  GlobalState:set('loaded', true, false)
+AddEventHandler("playerDropped",function(reason)
+  vRP:onPlayerDropped(source)
 end)
+
+RegisterNetEvent("vRPcli:playerSpawned", function()      
+  vRP:onPlayerSpawned(source)
+end)
+
+RegisterNetEvent("vRPcli:playerDied", function()
+  vRP:onPlayerDied(source)
+end)
+
+-- init tables
+
 
 -- handlers
 
@@ -104,6 +111,7 @@ local lang = vRP.lang
 
 -- Base extension
 local Base = class("Base", vRP.Extension)
+
 
 -- EVENT
 
@@ -139,23 +147,15 @@ function Base.event:playerSpawn(user, first_spawn)
 end
 
 AddStateBagChangeHandler("loaded", nil, function(bagName, _, value, _, _)
-	if  value then    
-		vRP:registerExtension(Base)
-
-    AddEventHandler("playerDropped",function(reason)
-      vRP:onPlayerDropped(source)
-    end)
-    
-    RegisterNetEvent("vRPcli:playerSpawned", function()      
-      vRP:onPlayerSpawned(source)
-    end)
-    
-    RegisterNetEvent("vRPcli:playerDied", function()
-      vRP:onPlayerDied(source)
-    end)
+  if  value then        -- 
+		vRP:registerExtension(Base)    
 	end
 end)
 
-
-
-
+async(function() 
+  TriggerEvent("vRP:reload")  
+  GlobalState:set('loaded', false, true)  
+  Wait(100)
+  vRP:execute("vRP/base_tables")   
+  GlobalState:set('loaded', true, true)
+end)
