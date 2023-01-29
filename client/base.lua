@@ -2,9 +2,6 @@
 -- MIT license (see LICENSE or vrp/vRPShared.lua)
 
 -- init vRP client context
-
-print('VRP')
-
 Tunnel = module("vrp", "lib/Tunnel" )
 Proxy = module("vrp", "lib/Proxy")
 
@@ -14,8 +11,8 @@ vRP = cvRP() -- instantiate vRP
 local pvRP = {}
 
 -- load script in vRP context
-function pvRP.loadScript(resource, path)
-  module(resource, path)
+function pvRP.loadScript(resource, path, force)
+  module(resource, path, force)
 end
 
 Proxy.addInterface("vRP", pvRP)

@@ -27,14 +27,14 @@ cfg.ignore_ip_identifier = true
 
 cfg.lang = "en"
 
-cfg.log_level = 0 -- maximum verbose level for logs, -1 may disable logs and 1000 may print all logs
+cfg.log_level = 1000 -- maximum verbose level for logs, -1 may disable logs and 1000 may print all logs
 
 -- this list of resources is auto started after starting vrp
 cfg.moduals = {
 	-- database should be first
-	"vrp_oxmysql",
-  "menuv",
-	"vrp_commands"
+	-- "vrp_oxmysql",
+  -- "menuv",
+	-- "vrp_commands"
 }
 
 return cfg

@@ -13,6 +13,7 @@ function PlayerState:__construct()
   self.state_ready = false
   self.update_interval = 30
   self.mp_models = {} -- map of model hash
+  self.player_data = {}
 
   -- update task
   Citizen.CreateThread(function()
@@ -35,19 +36,17 @@ end
 
 -- amount: 100-200 ?
 function PlayerState:setHealth(amount)
-  if not pcall(SetEntityHealth, GetPlayerPed(-1), math.floor(amount)) then
+  if not pcall(SetEntityHealth,PlayerPedId(), math.floor(amount)) then
     Wait(100)
     self:setHealth(amount)
   end
 end
 
-function PlayerState:setMaxHealth(amount)
-  print('ok', amount)
-  SetPedMaxHealth(GetPlayerPed(-1), math.floor(amount))
+function PlayerState:setMaxHealth(amount)  
+  SetPedMaxHealth(PlayerPedId(), math.floor(amount))
 end
 
-function PlayerState:getMaxHealth()
-  print("GetMaxHealth", GetPedMaxHealth(PlayerPedId()))
+function PlayerState:getMaxHealth()  
   return GetPedMaxHealth(PlayerPedId())  
 end
 
@@ -149,7 +148,7 @@ function PlayerState:setCustomization(custom)
           -- changing player model remove armour and health, so save it
 
           vRP:triggerEventSync("playerModelSave")
-          local maxHealth = self:getMaxHealth()
+          local maxHealth = self:getMaxHealth() or 400
           local health = self:getHealth()          
 
           SetPlayerModel(PlayerId(), mhash)
@@ -209,6 +208,10 @@ function PlayerState:setCustomization(custom)
   return r:wait()
 end
 
+function PlayerState:updateData(data)
+  self.player_data = data
+end
+
 -- EVENT
 
 PlayerState.event = {}
@@ -216,6 +219,7 @@ PlayerState.event = {}
 function PlayerState.event:playerDeath()
   self.state_ready = false
 end
+
 
 -- TUNNEL
 PlayerState.tunnel = {}
@@ -247,5 +251,6 @@ PlayerState.tunnel.getDrawables = PlayerState.getDrawables
 PlayerState.tunnel.getDrawableTextures = PlayerState.getDrawableTextures
 PlayerState.tunnel.getCustomization = PlayerState.getCustomization
 PlayerState.tunnel.setCustomization = PlayerState.setCustomization
+PlayerState.tunnel.updateData = PlayerState.updateData
 
 vRP:registerExtension(PlayerState)

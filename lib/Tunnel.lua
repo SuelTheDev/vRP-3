@@ -16,6 +16,8 @@ else
 end
 
 local Tunnel = {}
+Tunnel.interfaces = {}
+
 
 -- define per dest regulator
 Tunnel.delays = {}
@@ -24,7 +26,7 @@ Tunnel.delays = {}
 -- dest: player source
 -- delay: milliseconds (0 for instant trigger)
 function Tunnel.setDestDelay(dest, delay)
-  Tunnel.delays[dest] = {delay, 0}
+  Tunnel.delays[dest] = { delay, 0 }
 end
 
 local function tunnel_resolve(itable, key)
@@ -35,8 +37,8 @@ local function tunnel_resolve(itable, key)
   local identifier = mtable.identifier
   local fname = key
   local no_wait = false
-  if string.sub(key,1,1) == "_" then
-    fname = string.sub(key,2)
+  if string.sub(key, 1, 1) == "_" then
+    fname = string.sub(key, 2)
     no_wait = true
   end
   -- generate access function
@@ -54,15 +56,15 @@ local function tunnel_resolve(itable, key)
     -- get delay data
     local delay_data
     if dest then delay_data = Tunnel.delays[dest] end
-    if not delay_data then delay_data = {0,0} end
+    if not delay_data then delay_data = { 0, 0 } end
     -- increase delay
     local add_delay = delay_data[1]
-    delay_data[2] = delay_data[2]+add_delay
+    delay_data[2] = delay_data[2] + add_delay
     -- delay trigger
     if delay_data[2] > 0 then
-      SetTimeout(delay_data[2], function() 
+      SetTimeout(delay_data[2], function()
         -- remove added delay
-        delay_data[2] = delay_data[2]-add_delay
+        delay_data[2] = delay_data[2] - add_delay
         -- send request
         local rid = -1
         if r then
@@ -70,9 +72,9 @@ local function tunnel_resolve(itable, key)
           callbacks[rid] = r
         end
         if SERVER then
-          TriggerRemoteEvent(iname..":tunnel_req", dest, fname, args, identifier, rid)
+          TriggerRemoteEvent(iname .. ":tunnel_req", dest, fname, args, identifier, rid)
         else
-          TriggerRemoteEvent(iname..":tunnel_req", fname, args, identifier, rid)
+          TriggerRemoteEvent(iname .. ":tunnel_req", fname, args, identifier, rid)
         end
       end)
     else -- no delay
@@ -83,9 +85,9 @@ local function tunnel_resolve(itable, key)
         callbacks[rid] = r
       end
       if SERVER then
-        TriggerRemoteEvent(iname..":tunnel_req", dest, fname, args, identifier, rid)
+        TriggerRemoteEvent(iname .. ":tunnel_req", dest, fname, args, identifier, rid)
       else
-        TriggerRemoteEvent(iname..":tunnel_req", fname, args, identifier, rid)
+        TriggerRemoteEvent(iname .. ":tunnel_req", fname, args, identifier, rid)
       end
     end
     if r then return r:wait() end
@@ -94,13 +96,23 @@ local function tunnel_resolve(itable, key)
   return fcall
 end
 
+function Tunnel.unbindInterface(name)
+  if Tunnel.interfaces[name] then
+    RemoveEventHandler(Tunnel.interfaces[name])
+    Tunnel.interfaces[name] = nil
+    return true
+  end
+  return false
+end
+
 -- bind an interface (listen to net requests)
 -- name: interface name
 -- interface: table containing functions
 function Tunnel.bindInterface(name, interface)
+
   -- receive request
-  RegisterLocalEvent(name..":tunnel_req")
-  AddEventHandler(name..":tunnel_req", function(member, args, identifier, rid)
+  RegisterLocalEvent(name .. ":tunnel_req")
+  Tunnel.interfaces[name] = AddEventHandler(name .. ":tunnel_req", function(member, args, identifier, rid)
     local source = source
     local f = interface[member]
     local rets = {}
@@ -111,15 +123,15 @@ function Tunnel.bindInterface(name, interface)
     -- send response (even if the function doesn't exist)
     if rid >= 0 then
       if SERVER then
-        TriggerRemoteEvent(name..":"..identifier..":tunnel_res", source, rid, rets)
+        TriggerRemoteEvent(name .. ":" .. identifier .. ":tunnel_res", source, rid, rets)
       else
-        TriggerRemoteEvent(name..":"..identifier..":tunnel_res", rid, rets)
+        TriggerRemoteEvent(name .. ":" .. identifier .. ":tunnel_res", rid, rets)
       end
     end
   end)
 end
 
--- get a tunnel interface to send requests 
+-- get a tunnel interface to send requests
 -- name: interface name
 -- identifier: (optional) unique string to identify this tunnel interface access; if nil, will be the name of the resource
 function Tunnel.getInterface(name, identifier)
@@ -127,10 +139,11 @@ function Tunnel.getInterface(name, identifier)
   local ids = IDManager()
   local callbacks = {}
   -- build interface
-  local r = setmetatable({},{ __index = tunnel_resolve, name = name, ids = ids, callbacks = callbacks, identifier = identifier })
+  local r = setmetatable({},
+    { __index = tunnel_resolve, name = name, ids = ids, callbacks = callbacks, identifier = identifier })
   -- receive response
-  RegisterLocalEvent(name..":"..identifier..":tunnel_res")
-  AddEventHandler(name..":"..identifier..":tunnel_res", function(rid, args)
+  RegisterLocalEvent(name .. ":" .. identifier .. ":tunnel_res")
+  AddEventHandler(name .. ":" .. identifier .. ":tunnel_res", function(rid, args)
     local callback = callbacks[rid]
     if callback then
       -- free request id

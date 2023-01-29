@@ -1,4 +1,3 @@
-
 local cfg = {}
 
 -- define each group with a set of permissions
@@ -11,11 +10,11 @@ local cfg = {}
 
 function police_init(user)
   local weapons = {}
-  weapons["WEAPON_STUNGUN"] = {ammo=1000}
-  weapons["WEAPON_COMBATPISTOL"] = {ammo=100}
-  weapons["WEAPON_NIGHTSTICK"] = {ammo=0}
-  weapons["WEAPON_FLASHLIGHT"] = {ammo=0}
-  
+  weapons["WEAPON_STUNGUN"] = { ammo = 1000 }
+  weapons["WEAPON_COMBATPISTOL"] = { ammo = 100 }
+  weapons["WEAPON_NIGHTSTICK"] = { ammo = 0 }
+  weapons["WEAPON_FLASHLIGHT"] = { ammo = 0 }
+
   --vRP.EXT.PlayerState.remote._giveWeapons(user.source,weapons,true)
   --vRP.EXT.Police.remote._setCop(user.source,true)
   --vRP.EXT.PlayerState.remote._setArmour(user.source,100)
@@ -38,16 +37,17 @@ end
 
 cfg.groups = {
   ["superadmin"] = {
-    _config = {onspawn = function(user) vRP.EXT.Base.remote._notify(user.source, "You are superadmin.") end},
+    _config = { onspawn = function(user) vRP.EXT.Base.remote._notify(user.source, "You are superadmin.") end },
     "player.group.add",
     "player.group.remove",
     "player.givemoney",
     "player.giveitem",
-	"player.giveweapon",
+    "player.giveweapon",
     "profiler.server",
-    "profiler.client"
+    "profiler.client",
   },
   ["admin"] = {
+    "admin.wall",
     "admin.tickets",
     "admin.announce",
     "player.list",
@@ -62,8 +62,8 @@ cfg.groups = {
     "player.custom_sound",
     "player.display_custom",
     "player.coords",
-	"player.revive",
-	"player.spectate",
+    "player.revive",
+    "player.spectate",
     "player.tptome",
     "player.tpto"
   },
@@ -104,7 +104,7 @@ cfg.groups = {
     "police.chest_seized",
     "-player.store_weapons",
     "-police.seizable" -- negative permission, police can't seize itself, even if another group add the permission
---    "mission.paycheck.police" -- basic mission
+    --    "mission.paycheck.police" -- basic mission
   },
   ["emergency"] = {
     _config = {
@@ -125,8 +125,8 @@ cfg.groups = {
     "vehicle.repair",
     "vehicle.replace",
     "repair.service"
---    "mission.repair.satellite_dishes", -- basic mission
---    "mission.repair.wind_turbines" -- basic mission
+    --    "mission.repair.satellite_dishes", -- basic mission
+    --    "mission.repair.wind_turbines" -- basic mission
   },
   ["taxi"] = {
     _config = {
@@ -166,18 +166,21 @@ cfg.users = {
 
 cfg.selectors = {
   ["Jobs"] = {
-    _config = {x = -268.363739013672, y = -957.255126953125, z = 31.22313880920410, map_entity = {"PoI", {blip_id = 351, blip_color = 47, marker_id = 1}}},
+    _config = { x = -268.363739013672, y = -957.255126953125, z = 31.22313880920410,
+      map_entity = { "PoI", { blip_id = 351, blip_color = 47, marker_id = 1 } } },
     "taxi",
     "repair",
     "citizen"
   },
   ["Police job"] = {
-    _config = {x = 437.924987792969,y = -987.974182128906, z = 30.6896076202393, map_entity = {"PoI", {blip_id = 351, blip_color = 38, marker_id = 1}}},
+    _config = { x = 437.924987792969, y = -987.974182128906, z = 30.6896076202393,
+      map_entity = { "PoI", { blip_id = 351, blip_color = 38, marker_id = 1 } } },
     "police",
     "citizen"
   },
   ["Emergency job"] = {
-    _config = {x=-498.959716796875,y=-335.715148925781,z=34.5017547607422, map_entity = {"PoI", {blip_id = 351, blip_color = 1, marker_id = 1}}},
+    _config = { x = -498.959716796875, y = -335.715148925781, z = 34.5017547607422,
+      map_entity = { "PoI", { blip_id = 351, blip_color = 1, marker_id = 1 } } },
     "emergency",
     "citizen"
   }
@@ -195,7 +198,7 @@ cfg.identity_gtypes = {
 cfg.count_display_interval = 15 -- seconds
 
 -- toggle display
-cfg.display = false		
+cfg.display = false
 
 cfg.count_display_css = [[
 .div_group_count_display{
@@ -223,13 +226,12 @@ cfg.count_display_css = [[
 
 -- list of {permission, img_src}
 cfg.count_display_permissions = {
-  {"!group.user", "https://i.imgur.com/tQ2VHAi.png"},
-  {"!group.admin", "https://i.imgur.com/cpSYyN0.png"},
-  {"!group.police", "https://i.imgur.com/dygLDfC.png"},
-  {"!group.emergency", "https://i.imgur.com/K5lXutO.png"},
-  {"!group.repair", "https://i.imgur.com/QEjFgzM.png"},
-  {"!group.taxi", "https://i.imgur.com/yY4yrZN.png"}
+  { "!group.user", "https://i.imgur.com/tQ2VHAi.png" },
+  { "!group.admin", "https://i.imgur.com/cpSYyN0.png" },
+  { "!group.police", "https://i.imgur.com/dygLDfC.png" },
+  { "!group.emergency", "https://i.imgur.com/K5lXutO.png" },
+  { "!group.repair", "https://i.imgur.com/QEjFgzM.png" },
+  { "!group.taxi", "https://i.imgur.com/yY4yrZN.png" }
 }
 
 return cfg
-

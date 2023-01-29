@@ -13,34 +13,57 @@ local storedModules = {}
 -- load a lua resource file as module (for a specific side)
 -- rsc: resource name
 -- path: lua file path without extension
-function module(rsc, path)
+function module(rsc, path, force)
   if not path then -- shortcut for vrp, can omit the resource parameter
     path = rsc
     rsc = "vrp"
   end
-  local key = rsc.."/"..path
+  local key = rsc .. "/" .. path
   local rets = modules[key]
-  if rets then -- cached module
+  if rets and not force then -- cached module
     return table.unpack(rets, 2, rets.n)
   else
-    local code = LoadResourceFile(rsc, path..".lua")
+    local code = LoadResourceFile(rsc, path .. ".lua")
     if code then
-      local f, err = load(code, rsc.."/"..path..".lua")
+      local f, err = load(code, rsc .. "/" .. path .. ".lua")
       if f then
         local rets = table.pack(xpcall(f, debug.traceback))
         if rets[1] then
           modules[key] = rets
           return table.unpack(rets, 2, rets.n)
         else
-          error("error loading module "..rsc.."/"..path..": "..rets[2])
+          error("error loading module " .. rsc .. "/" .. path .. ": " .. rets[2])
         end
       else
-        error("error parsing module "..rsc.."/"..path..": "..err)
+        error("error parsing module " .. rsc .. "/" .. path .. ": " .. err)
       end
     else
-      error("resource file "..rsc.."/"..path..".lua not found")
+      error("resource file " .. rsc .. "/" .. path .. ".lua not found")
     end
   end
+end
+
+function unmodule(rsc, path)
+  if not path then
+    path = rsc
+    rsc = "vrp"
+  end
+
+  local key = rsc .. "/" .. path
+
+  if modules[key] then
+    modules[key] = nil
+  end
+
+end
+
+function isModuleAdded(rsc, path)
+  if not path then
+    path = rsc
+    rsc = "vrp"
+  end
+  local key = rsc .. "/" .. path
+  return modules[key] ~= nil
 end
 
 -- Luaoop class
@@ -83,12 +106,14 @@ if cfg_modules.profiler then
   -- load profiler
   local ELProfiler
   if not os then -- fix missing os lib error
-    os = {}; ELProfiler = module("vrp", "lib/ELProfiler"); os = nil
+    os = {};
+    ELProfiler = module("vrp", "lib/ELProfiler");
+    os = nil
   else
     ELProfiler = module("vrp", "lib/ELProfiler")
   end
   -- set clock
-  ELProfiler.setClock(function() return GetGameTimer()/1000 end)
+  ELProfiler.setClock(function() return GetGameTimer() / 1000 end)
   -- patch coroutine.create to profile coroutines
   local create = coroutine.create
   coroutine.create = function(...)
@@ -107,7 +132,7 @@ if cfg_modules.profiler then
     if not running and (not next(options.resources) or options.resources[rsc_name]) then
       running = true -- guard
       ELProfiler.start(options.period, options.stack_depth)
-      Citizen.Wait(options.duration*1000)
+      Citizen.Wait(options.duration * 1000)
       local trigger = CLIENT and TriggerServerEvent or TriggerEvent
       trigger("vRP:profile:res", id, rsc_name, ELProfiler.stop())
       running = false
@@ -128,7 +153,7 @@ end
 function clone(t)
   if type(t) == "table" then
     local new = {}
-    for k,v in pairs(t) do
+    for k, v in pairs(t) do
       new[k] = clone(v)
     end
     return new
@@ -137,9 +162,24 @@ function clone(t)
   end
 end
 
+function dump(tbl)
+  local tb = {}
+  for k, v in pairs(tbl) do
+    tb[k] = v
+    if type(v) == "table" then
+      tb[k] = dump(v)
+    elseif type(v) == "function" then
+      tb[k] = nil
+    end
+  end
+  return tb
+end
+
+table.dump = dump
+
 function parseInt(v)
-   local n = tonumber(v)
-   return n and math.floor(n) or 0
+  local n = tonumber(v)
+  return n and math.floor(n) or 0
 end
 
 -- will remove chars not allowed/disabled by strchars
@@ -152,8 +192,8 @@ function sanitizeString(str, strchars, allow_policy)
   if chars == nil then
     chars = {}
     local size = string.len(strchars)
-    for i=1,size do
-      local char = string.sub(strchars,i,i)
+    for i = 1, size do
+      local char = string.sub(strchars, i, i)
       chars[char] = true
     end
 
@@ -161,10 +201,10 @@ function sanitizeString(str, strchars, allow_policy)
   end
   -- sanitize
   size = string.len(str)
-  for i=1,size do
-    local char = string.sub(str,i,i)
+  for i = 1, size do
+    local char = string.sub(str, i, i)
     if (allow_policy and chars[char]) or (not allow_policy and not chars[char]) then
-      r = r..char
+      r = r .. char
     end
   end
   return r
@@ -172,9 +212,9 @@ end
 
 function splitString(str, sep)
   if sep == nil then sep = "%s" end
-  local t={}
-  local i=1
-  for str in string.gmatch(str, "([^"..sep.."]+)") do
+  local t = {}
+  local i = 1
+  for str in string.gmatch(str, "([^" .. sep .. "]+)") do
     t[i] = str
     i = i + 1
   end

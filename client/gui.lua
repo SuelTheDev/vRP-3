@@ -14,24 +14,9 @@ function GUI:__construct()
   -- task: gui controls (from cellphone)
   Citizen.CreateThread(function()
     while true do
-      Citizen.Wait(  15  )
+      Citizen.Wait(15)
 
       if not self.paused then
-        -- menu controls
-        if IsControlJustPressed(table.unpack(vRP.cfg.controls.phone.up)) then SendNUIMessage({ act = "event", event = "UP" }) end
-        if IsControlJustPressed(table.unpack(vRP.cfg.controls.phone.down)) then SendNUIMessage({ act = "event",
-          event = "DOWN" }) end
-        if IsControlJustPressed(table.unpack(vRP.cfg.controls.phone.left)) then SendNUIMessage({ act = "event",
-          event = "LEFT" }) end
-        if IsControlJustPressed(table.unpack(vRP.cfg.controls.phone.right)) then SendNUIMessage({ act = "event",
-          event = "RIGHT" }) end
-        if IsControlJustPressed(table.unpack(vRP.cfg.controls.phone.select)) then SendNUIMessage({ act = "event",
-          event = "SELECT" }) end
-        if IsControlJustPressed(table.unpack(vRP.cfg.controls.phone.cancel)) then
-          self.remote._closeMenu()
-          SendNUIMessage({ act = "event", event = "CANCEL" })
-        end
-
         -- open general menu
         if IsControlJustPressed(table.unpack(vRP.cfg.controls.phone.open)) and not self.menu_data then
           local ok = true
@@ -53,9 +38,11 @@ function GUI:__construct()
 
         -- F5,F6 (default: control michael, control franklin)
         if IsControlJustPressed(table.unpack(vRP.cfg.controls.request.yes)) then SendNUIMessage({ act = "event",
-          event = "F5" }) end
+            event = "F5" })
+        end
         if IsControlJustPressed(table.unpack(vRP.cfg.controls.request.no)) then SendNUIMessage({ act = "event",
-          event = "F6" }) end
+            event = "F6" })
+        end
       end
 
       -- pause events
@@ -220,6 +207,13 @@ function GUI.event:pauseChange(paused)
   self:setVisible(not paused)
 end
 
+function GUI.event:menuEvent(eventType, value, k)  
+  print(eventType, value, k)
+   if eventType == "select" then
+    vRP.EXT.GUI.remote._triggerMenuOption( k, value )
+  end
+end
+
 -- TUNNEL
 
 GUI.tunnel = {}
@@ -227,18 +221,64 @@ GUI.tunnel = {}
 -- MENU
 
 function GUI.tunnel:openMenu(menudata)
-  self.menu_data = menudata
 
-  if vRP.cfg.default_menu then
-    SendNUIMessage({ act = "open_menu", menudata = menudata })
+  local m = MenuV:GetMenuByNamespace(menudata.namespace)  
+  if m then
+    MenuV:RemoveMenu( m.UUID )
   end
 
-  vRP:triggerEvent("menuOpen", menudata)
+  self.menu_data = MenuV:CreateMenu(
+    menudata.title,
+    menudata.subtitle,
+    menudata.position,
+    menudata.r,
+    menudata.g,
+    menudata.b,
+    menudata.size,
+    menudata.texture,
+    menudata.dictionary,
+    menudata.namespace,
+    menudata.theme
+  )
+
+  self.menu_data:ClearItems()
+
+  for k, v in pairs(menudata.options) do
+      if v.type == "button" then
+        local button = self.menu_data:AddButton({ icon = v.icon , label = v.label , value = v.value, description = v.description , disabled = v.disabled })       
+        button:On('select', function(item) vRP:triggerEvent('menuEvent', 'select', item.Value, k) end)
+      elseif v.type == "checkbox" then
+        local button = self.menu_data:AddCheckbox({ icon = v.icon , label = v.label , value = type(v.value) == "boolean" and v.value or false, description = v.description , disabled = v.disabled})
+        button:On('change', function(_, n, o) vRP:triggerEvent('menuEvent', 'select', n, k) end)
+      elseif v.type == "confirm" then
+        local button = self.menu_data:AddConfirm({ icon = v.icon , label = v.label , value = v.value, description = v.description , disabled = v.disabled})
+        button:On('change', function(_, n, _) vRP:triggerEvent('menuEvent', 'select', n, k) end)
+      elseif v.type == "range" then
+        local button = self.menu_data:AddRange({ icon = v.icon , label = v.label , value = v.value, description = v.description , disabled = v.disabled, min = v.min, max = v.max})
+        button:On('change', function(_, n, o) vRP:triggerEvent('menuEvent', 'select', n, k) end)
+      elseif v.type == "slider" then
+        local button = self.menu_data:AddSlider({ icon = v.icon , label = v.label , value = v.value, description = v.description , disabled = v.disabled, values = v.values})
+        button:On('change', function(_, n, o) vRP:triggerEvent('menuEvent', 'select', n, k) end)
+      end
+  end
+
+  MenuV:OpenMenu(self.menu_data, function()
+    
+    local close_eventUUID
+    
+    close_eventUUID = self.menu_data:On('close', function(menu)      
+      self.menu_data:RemoveOnEvent('close', close_eventUUID)
+      MenuV:RemoveMenu(menu.UUID)
+      self.remote.closeMenu()
+      close_eventUUID = nil  
+    end)
+    vRP:triggerEvent("menuOpen", menudata)
+  end)
 end
 
 function GUI.tunnel:closeMenu()
+  
   self.menu_data = nil
-
   if vRP.cfg.default_menu then
     SendNUIMessage({ act = "close_menu" })
   end
@@ -302,7 +342,7 @@ GUI.tunnel.removeDiv = GUI.removeDiv
 -- NUI
 
 -- gui menu events
-RegisterNUICallback("menu", function(data, cb)
+RegisterNUICallback("menu", function(data, cb)  
   if data.act == "valid" then
     vRP.EXT.GUI.remote._triggerMenuOption(data.option + 1, data.mod)
   elseif data.act == "select" then
@@ -313,7 +353,6 @@ end)
 -- gui prompt event
 RegisterNUICallback("prompt", function(data, cb)
   if data.act == "close" then
-    SetNuiFocus(false)
     SetNuiFocus(false)
     vRP.EXT.GUI.remote._promptResult(data.result)
   end

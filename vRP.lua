@@ -258,25 +258,27 @@ function vRP:connectUser(source)
     if type(data) == "table" then user.data = data end
   end
   --- character
-  if not user:useCharacter(user.data.current_character or 0) then -- use last used character
-    local characters = user:getCharacters()
-    if #characters > 0 then -- use existing character
-      user:useCharacter(characters[1])
-    else -- use new character
-      local cid = user:createCharacter()
-      if cid then
-        user:useCharacter(cid)
-      else
-        self:error("couldn't create character (user_id = " .. user_id .. ")")
-      end
-    end
-  end
+  -- if not user:useCharacter(user.data.current_character or 0) then -- use last used character
+  --   local characters = user:getCharacters()
+  --   if #characters > 0 then -- use existing character
+  --     user:useCharacter(characters[1])
+  --   else -- use new character
+  --     local cid = user:createCharacter()
+  --     if cid then
+  --       user:useCharacter(cid)
+  --     else
+  --       self:error("couldn't create character (user_id = " .. user_id .. ")")
+  --     end
+  --   end
+  -- end
   --- last login
   user.last_login = user.data.last_login or ""
   user.data.last_login = os.date("%H:%M:%S %d/%m/%Y")
   -- trigger join
   self:log(user.name .. " (" .. user.endpoint .. ") connected (user_id = " .. user.id .. ")")
+  
   self:triggerEvent("playerJoin", user)
+  
   return user
 end
 
@@ -350,7 +352,7 @@ end
 function vRP:save()
   if self.log_level > 0 then self:log("save users") end
   self:triggerEvent("save")
-  for user_id, user in pairs(self.users) do user:save() end
+  for _, user in pairs(self.users) do user:save() end
 end
 
 -- events
@@ -364,7 +366,7 @@ function vRP:onPlayerSpawned(source)
     if first_spawn then
       -- first spawn, reference player
       -- send players to new player
-      for id, user in pairs(self.users) do
+      for _, user in pairs(self.users) do
         self.EXT.Base.remote._addPlayer(source, user.source)
       end
       -- send new player to all players
@@ -379,9 +381,11 @@ function vRP:onPlayerSpawned(source)
         end)
       end)
     end
-    SetTimeout(2000, function() -- trigger spawn event
-      self:triggerEvent("playerSpawn", user, first_spawn)
-    end)
+
+
+    -- SetTimeout(2000, function() -- trigger spawn event
+    --   self:triggerEvent("playerSpawn", user, first_spawn)
+    -- end)
   end
 end
 
@@ -402,6 +406,7 @@ RegisterNetEvent("vRP:reload", function()
     async(function()
        if GetResourceState(v) == "stopped" then
         StartResource(v)
+        Wait(1000)
       end
     end)
   end

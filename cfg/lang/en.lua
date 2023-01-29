@@ -754,6 +754,24 @@ local lang = {
     prompt_stack_depth = "Stack dump depth ? A higher value can help to locate hotpots more precisely.",
     prompt_aggregate = "Aggregate profiles (yes/no) ? If yes, it will aggregate all profiles into a single one instead of one per resource.",
     prompt_report = "Profiler report (copy with Ctrl-A Ctrl-C)."
+  },
+  main_menu = {
+    admin = {
+      description = "Show admin options menu",
+      title = "Admin Options",
+      no_clip = "No Clip",      
+      god_mode = "God Mode",
+      active_wall = "Active Wall",      
+      change_ped_model = "Player Skin",      
+    },
+    skin_menu = {
+      input = "Input custom model name",
+      description = "Insert the custom model name."
+    },
+    users = {
+      description = "Show users options menu",
+      title = "Users Management",
+    }
   }
 }
 
