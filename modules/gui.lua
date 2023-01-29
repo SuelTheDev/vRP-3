@@ -36,24 +36,46 @@ function Menu:listen(name, callback)
 end
 
 function Menu:initialize()
-  self.title = htmlEntities.encode("<" .. self.name .. ">")
-  self.options = {}
-  self.css = {} -- {.header_color}
-  self.closed = false
+  self.title      = htmlEntities.encode("<" .. self.name .. ">")
+  self.options    = {}
+  self.css        = {} -- {.header_color}
+  self.subtitle   = ''
+  self.position   = 'topleft'
+  self.r          = 0
+  self.g          = 0
+  self.b          = 255
+  self.size       = 'size-100'
+  self.texture    = 'default'
+  self.dictionary = 'menuv'
+  self.namespace  = self.name and "menu_" .. self.name:lower() or 'unknown'
+  self.theme      = 'default'
+  self.closed     = false
 end
 
 function Menu:serializeNet()
   -- prepare network data
   local data = {
-    options = {},
-    title = self.title,
-    css = self.css,
+    options      = {},
+    title        = self.title,
+    css          = self.css,
+    subtitle     = self.subtitle,
+    position     = self.position,
+    r            = self.r,
+    g            = self.g,
+    b            = self.b,
+    size         = self.size,
+    texture      = self.texture,
+    dictionary   = self.dictionary,
+    namespace    = self.namespace,
+    theme        = self.theme,
+    closed       = self.closed,
     select_event = (self.event_listeners["select"] ~= nil)
   }
 
   -- titles
   for k, v in pairs(self.options) do
-    data.options[k] = { v[1], v[3] } -- title, description
+    data.options[k] = table.clone(v)
+    data.options[k].action = nil
   end
 
   return data
@@ -69,6 +91,7 @@ function Menu:triggerClose()
 end
 
 function Menu:triggerSelect(id)
+  
   if self.options[id] then
     self:triggerEvent("select", self, id)
   end
@@ -76,8 +99,10 @@ end
 
 function Menu:triggerOption(id, mod)
   local option = self.options[id]
-  if option and option[2] then
-    option[2](self, option[4], mod, id)
+
+
+  if option and option.action then
+    option.action(self, mod, id)
   end
 end
 
@@ -109,13 +134,54 @@ end
 --- callback(menu, value): should return a string or nil
 -- value: (optional) option value, can be anything, option index by default
 -- index: (optional) by default the option is added at the end, but an index can be used to insert the option
-function Menu:addOption(title, action, description, value, index)
+-- min: number (optional)
+-- max: number (optional)
+-- values: table => {label = '', description = '', value = anything} (optional)
+function Menu:addOption(title, action, description, value, index, type, disabled, icon, min, max, values) 
+
+  local data = {
+    label = title,
+    description = description,   
+    value = value or #self.options + 1,
+    icon = icon or '',
+    disabled = disabled or false,
+    min = min or nil,
+    max = max or nil,
+    values = values,
+    action = action,
+    type = type or 'button'
+  }
   if index then
-    table.insert(self.options, index, { title, action, description, value or #self.options + 1 })
+    table.insert(self.options, index, data)
   else
-    table.insert(self.options, { title, action, description, value or #self.options + 1 })
+    table.insert(self.options, data)
   end
 end
+
+function Menu:addButtonOption(icon, title, action, description, value, index, disabled)
+  self:addOption(title, action, description, value, index, 'button', disabled, icon)
+end
+
+function Menu:addCheckboxOption(icon, title, action, description, value, index, disabled)
+  self:addOption(title, action, description, value, index,'checkbox',  disabled, icon)
+end
+
+function Menu:addConfirmOption(icon, title, action, description, value, index, disabled)
+  self:addOption(title, action, description, value, index,'confirm',  disabled, icon)
+end
+
+function Menu:addRangeOption(icon, title, action, description, value, disabled, index, min, max)
+  assert(type(min) == "number", "Min param need be a number")
+  assert(type(max) == "number", "Max param need be a number")
+  assert(min < max, "Min param need be less than Max param")
+  self:addOption(title, action, description, value, index,'range',  disabled, icon, min, max)
+end
+
+function Menu:addSliderOption(icon, title, action, description, value, disabled, index, values)
+  assert(type(values) == "table", "Values need be a table of items with structure { label = 'item title', value = 'any', description = 'item description' } by item in table.")
+  self:addOption(title, action, description, value, index,'slider',  disabled, icon, nil, nil, values)
+end
+
 
 -- Extension
 
@@ -262,7 +328,7 @@ function GUI:__construct()
 
   self:registerMenuBuilder("main", function(menu)
     menu.title = lang.common.menu.title()
-    menu.css.header_color = "rgba(0,125,255,0.75)"
+    menu.namespace = 'menu_main'
   end)
 end
 
@@ -274,6 +340,7 @@ end
 -- name: menu type name
 -- builder(menu): callback to modify the menu
 function GUI:registerMenuBuilder(name, builder)
+
   local mbuilders = self.menu_builders[name]
   if not mbuilders then
     mbuilders = {}
@@ -367,6 +434,8 @@ function GUI.tunnel:triggerMenuOption(id, mod)
 end
 
 function GUI.tunnel:triggerMenuSelect(id)
+
+
   local user = vRP.users_by_source[source]
 
   if user and user:isReady() then
@@ -414,7 +483,7 @@ function GUI.tunnel:openMainMenu()
 end
 
 AddStateBagChangeHandler("loaded", nil, function(bagName, _, value, _, _)
-  if  value then
-    vRP:registerExtension( GUI )
+  if value then
+    vRP:registerExtension(GUI)
   end
 end)
