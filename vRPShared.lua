@@ -31,7 +31,7 @@ local vRPShared = class("vRPShared")
 
 -- Extension class
 -- define .proxy/.tunnel for proxy and tunnel interfaces
--- ex: 
+-- ex:
 -- MyExt.tunnel = {}
 -- function MyExt.tunnel:add(a,b) return a+b end
 -- MyExt.remote.add(1,1) => 2
@@ -49,28 +49,33 @@ function vRPShared.Extension:__construct()
   -- init extension tunnel and proxy
   if self.tunnel then -- build tunnel interface
     self.tunnel_interface = {}
-    for k,v in pairs(self.tunnel) do
+    for k, v in pairs(self.tunnel) do
       self.tunnel_interface[k] = function(...)
         return v(self, ...)
       end
     end
 
-    Tunnel.bindInterface("vRP.EXT."..class.name(self), self.tunnel_interface)
+    Tunnel.bindInterface("vRP.EXT." .. class.name(self), self.tunnel_interface)
   end
 
   if self.proxy then -- build tunnel interface
     self.proxy_interface = {}
-    for k,v in pairs(self.proxy) do
+    for k, v in pairs(self.proxy) do
       self.proxy_interface[k] = function(...)
         return v(self, ...)
       end
     end
 
-    Proxy.addInterface("vRP.EXT."..class.name(self), self.proxy_interface)
+    Proxy.addInterface("vRP.EXT." .. class.name(self), self.proxy_interface)
   end
 
   -- tunnel remote
-  self.remote = Tunnel.getInterface("vRP.EXT."..class.name(self))
+  self.remote = Tunnel.getInterface("vRP.EXT." .. class.name(self))
+end
+
+function vRPShared.Extension:__destruct()  
+  Tunnel.unbindInterface("vRP.EXT." .. class.name(self))
+  Proxy.removeInterface("vRP.EXT." .. class.name(self))
 end
 
 -- level: (optional) level, 0 by default
@@ -95,6 +100,7 @@ end
 -- register an extension
 -- extension: Extension class
 function vRPShared:registerExtension(extension)
+
   if class.is(extension, vRPShared.Extension) then
     if not self.EXT[class.name(extension)] then
       -- instantiate
@@ -103,7 +109,7 @@ function vRPShared:registerExtension(extension)
 
       -- bind listeners
       if extension.event then
-        for name,cb in pairs(extension.event or {}) do
+        for name, cb in pairs(extension.event or {}) do
           local exts = self.ext_listeners[name]
           if not exts then -- create
             exts = {}
@@ -114,11 +120,11 @@ function vRPShared:registerExtension(extension)
         end
       end
 
-      self:log("Extension "..class.name(ext).." loaded.")
+      self:log("Extension " .. class.name(ext) .. " loaded.")
 
       self:triggerEvent("extensionLoad", ext)
     else
-      self:error("An extension named "..class.name(extension).." is already registered.")
+      self:error("An extension named " .. class.name(extension) .. " is already registered.")
     end
   else
     self:error("Not an Extension class.")
@@ -131,7 +137,7 @@ function vRPShared:unregisterExtension(extension)
     if self.EXT[name] then
       -- unbind listeners
       if extension.event then
-        for name,cb in pairs(extension.event or {}) do
+        for name, cb in pairs(extension.event or {}) do
           local exts = self.ext_listeners[name]
           if exts then -- check if the extension has listeners
             exts[ext] = nil
@@ -139,27 +145,37 @@ function vRPShared:unregisterExtension(extension)
         end
       end
 
-      self.EXT[name]:__destruct() -- unbind tunnel interface
+      -- Tunnel.unbindInterface("vRP.EXT." .. class.name(extension))
+      -- Proxy.removeInterface("vRP.EXT." .. class.name(extension))
+      if extension.__destruct then
+        extension.__destruct(self.EXT[name])
+      end
+     
       self.EXT[name] = nil
-      self:log("Extension "..name.." unloaded.")
-
+      self:log("Extension " .. name .. " unloaded.")
       self:triggerEvent("extensionUnload", extension)
     else
-      self:error("Extension "..name.." is not registered.")
+      self:error("Extension " .. name .. " is not registered.")
     end
   else
     self:error("Not an Extension class.")
   end
 end
 
-
+function vRPShared:isExtensionRegistered(extension)
+  if class.is(extension, vRPShared.Extension) then
+    return self.EXT[class.name(extension)] ~= nil
+  else
+    self:error("Not an Extension class.")
+  end
+end
 
 -- trigger event (with async call for each listener)
 function vRPShared:triggerEvent(name, ...)
   local exts = self.ext_listeners[name]
   if exts then
     local params = table.pack(...)
-    for ext,func in pairs(exts) do
+    for ext, func in pairs(exts) do
       async(function()
         func(ext, table.unpack(params, 1, params.n))
       end)
@@ -175,12 +191,12 @@ function vRPShared:triggerEventSync(name, ...)
     local count = 0
     local r = async()
     for ext, func in pairs(exts) do
-      count = count+1
+      count = count + 1
     end
-    for ext,func in pairs(exts) do
+    for ext, func in pairs(exts) do
       async(function()
         func(ext, table.unpack(params, 1, params.n))
-        count = count-1
+        count = count - 1
         if count == 0 then -- all done
           r()
         end
@@ -198,9 +214,9 @@ function vRPShared:log(msg, suffix, level)
 
   if level <= self.log_level then
     if suffix then
-      print("[vRP:"..suffix.."] "..msg)
+      print("^3[vRP:" .. suffix .. "]^0 " .. msg)
     else
-      print("[vRP] "..msg)
+      print("^3[vRP]^0 " .. msg)
     end
   end
 end
@@ -209,9 +225,9 @@ end
 -- suffix: optional category, string
 function vRPShared:error(msg, suffix)
   if suffix then
-    error("[vRP:"..suffix.."] "..msg)
+    error("^1[vRP:" .. suffix .. "]^0 " .. msg)
   else
-    error("[vRP] "..msg)
+    error("^1[vRP]^0 " .. msg)
   end
 end
 
