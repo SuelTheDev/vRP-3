@@ -287,7 +287,7 @@ function Identity.event:playerSpawn(user, first_spawn)
 
     local ment = clone(self.cfg.city_hall_map_entity)
     ment[2].title = lang.identity.cityhall.title()
-    ment[2].pos = { x, y, z - 1 }
+    ment[2].pos = { x, y, z - 1.0 }
     vRP.EXT.Map.remote._addEntity(user.source, ment[1], ment[2])
     user:setArea("vRP:cityhall", x, y, z, 1, 1.5, enter, leave)
   end
@@ -295,11 +295,12 @@ end
 
 function Identity.event:characterIdentityUpdate(user)
   self.remote._setRegistrationNumber(user.source, user.identity.registration)
+  self.remote._updateData(user.source, { name = user.identity.name, firstname = user.identity.firstname })
 end
 
 --FIX TO START MODULE AFTER CORE IS INITIALIZED
 AddStateBagChangeHandler("loaded", nil, function(bagName, _, value, _, _)
-  if  value then
+  if value then
     vRP:registerExtension(Identity)
   end
 end)
