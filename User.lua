@@ -22,7 +22,7 @@ function User:__construct(source, id)
   self.id = id
   self.endpoint = "0.0.0.0"
   self.data = {}
-  self.loading_character = false
+  self.loading_character = true
   self.use_character_action = ActionDelay()
 
   -- extensions constructors
@@ -41,7 +41,7 @@ end
 
 function User:save()
   vRP:setUData(self.id, "vRP:datatable", msgpack.pack(self.data))
-
+  print("LOADING CHARACTER", self.loading_character)
   if not self.loading_character then
     vRP:setCData(self.cid, "vRP:datatable", msgpack.pack(self.cdata))
   end
